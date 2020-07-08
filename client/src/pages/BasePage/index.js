@@ -5,6 +5,8 @@ import { Layout, Menu, Breadcrumb, List, Input } from 'antd';
 
 import HomePage from '../HomePage'
 
+import { addTask as addTaskToDB, fetchTasks } from '../../utils/api'
+
 import 'antd/dist/antd.css';
 import './style.scss'
 
@@ -13,15 +15,21 @@ const { Header, Content, Footer } = Layout;
 function BasePage(props) {
 
     const [data, setData] = useState([])
+    const user = (
+        props.user
+        || { email: "harsh51000@gmail.com" }
+    )
 
     const addTask = (e, setter) => {
         if (e.key === 'Enter') {
             setData([e.target.value].concat(data))
-            if(props.user===undefined){
+            if (user === undefined) {
                 localStorage.setItem("tasks", JSON.stringify([e.target.value].concat(data)))
             }
-            else{
-                // Mutate GraphQL Schema
+            else {
+                addTaskToDB(e.target.value, user.email)
+                    .then((res) => console.log(res))
+                    .catch((err) => console.log(err))
             }
             setter("")
         }
@@ -31,7 +39,7 @@ function BasePage(props) {
     const onChange = (e, setter) => setter(e.target.value)
 
     useEffect(() => {
-        if (props.user === undefined) {
+        if (user === undefined) {
             if (Array.isArray(JSON.parse(localStorage.getItem("tasks"))) === false) {
                 localStorage.setItem("tasks",
                     JSON.stringify([
@@ -47,8 +55,13 @@ function BasePage(props) {
                 setData(JSON.parse(localStorage.getItem("tasks")))
             }
         }
-        else{
-            // Request tasks using GraphQL
+        else {
+            fetchTasks(user.email)
+                .then((res) => {
+                    const tasks = res.data.data.tasks.map(obj => obj.task)
+                    setData(tasks)
+                })
+                .catch((err) => console.log(err))
         }
     }, [])
 

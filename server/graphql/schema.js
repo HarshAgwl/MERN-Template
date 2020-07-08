@@ -1,21 +1,11 @@
 const { buildSchema } = require('graphql');
 
-// module.exports = buildSchema(`
-//     type TestData{
-//         text: String!
-//         views: Int!
-//     }
-
-//     type RootQuery{
-//         hello: TestData!
-//     }
-
-//     schema{
-//         query: RootQuery
-//     }
-// `);
-
 module.exports = buildSchema(`
+    type Task{
+        task: String
+        email: String
+    }
+
     type TaskCreated {
         message: String!
     }
@@ -25,11 +15,16 @@ module.exports = buildSchema(`
         email: String!
     }
 
-    type TaskMutation {
-        addTask(task: TaskData): TaskCreated!
+    type RootQuery{
+        tasks(email: String!): [Task]
+    }
+
+    type RootMutation {
+        addTask(taskInput: TaskData): TaskCreated!
     }
 
     schema {
-        mutation: TaskMutation
+        query: RootQuery
+        mutation: RootMutation
     }
 `)
